@@ -34,7 +34,7 @@ set(
 mark_as_advanced(marzbanpp_INSTALL_CMAKEDIR)
 
 install(
-    FILES cmake/install-config.cmake
+    FILES cmake/install_config.cmake
     DESTINATION "${marzbanpp_INSTALL_CMAKEDIR}"
     RENAME "${package}Config.cmake"
     COMPONENT marzbanpp_Development
