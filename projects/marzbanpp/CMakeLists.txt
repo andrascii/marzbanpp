@@ -20,6 +20,7 @@ list(APPEND ADDITIONAL_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/projects/marzban
 #
 list(APPEND DEPS date::date)
 list(APPEND DEPS glaze::glaze)
+list(APPEND DEPS CURL::libcurl)
 
 #
 # collecting sources and headers

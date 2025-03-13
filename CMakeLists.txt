@@ -47,6 +47,7 @@ find_package(spdlog REQUIRED)
 find_package(date CONFIG REQUIRED)
 find_package(cxxopts CONFIG REQUIRED)
 find_package(glaze REQUIRED)
+find_package(CURL REQUIRED)
 
 #
 # C++ compiler settings

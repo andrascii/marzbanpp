@@ -19,8 +19,6 @@ list(APPEND ADDITIONAL_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/projects/marzban
 # deps
 #
 list(APPEND DEPS spdlog::spdlog)
-list(APPEND DEPS date::date)
-list(APPEND DEPS glaze::glaze)
 list(APPEND DEPS cxxopts::cxxopts)
 list(APPEND DEPS marzbanpp)
 

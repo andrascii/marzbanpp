@@ -11,12 +11,30 @@ using namespace marzbanpp;
 auto RestApiStatusCodeDescription(Api::RestApiStatusCode error) noexcept {
   switch (error) {
     case Api::RestApiStatusCode::kOk: return "Ok"s;
+    case Api::RestApiStatusCode::kUnauthorized: return "Unauthorized request - authorize and repeat"s;
     case Api::RestApiStatusCode::kYouAreNotAllowed: return "You're not allowed"s;
     case Api::RestApiStatusCode::kUserNotFound: return "User not found"s;
     case Api::RestApiStatusCode::kValidationError: return "Validation error"s;
     default: return "Unknown error code: "s + std::to_string(static_cast<int>(error));
   }
 };
+
+template <typename T>
+Api::Expected<T> ParseResponse(const HttpClient::Response& response) {
+  const auto parsed_json = glz::read_json<T>(response.body);
+
+  if (parsed_json) {
+    return *parsed_json;
+  }
+
+  const auto error = Api::Error{
+    .response_body = response.body,
+    .response_headers = response.headers,
+    .status_code = response.status_code,
+    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(parsed_json, response.body))};
+
+  return std::unexpected{error};
+}
 
 }// namespace
 
@@ -27,7 +45,8 @@ struct AdminToken {
   std::string token_type;
 };
 
-Api::Ptr Api::AuthAndCreate(const std::string& uri, const std::string& username, const std::string& password) {
+Api::Expected<Api::Ptr>
+Api::AuthAndCreate(const std::string& uri, const std::string& username, const std::string& password) {
   HttpClient http_client;
   HttpHeaders headers;
 
@@ -52,10 +71,10 @@ Api::Ptr Api::AuthAndCreate(const std::string& uri, const std::string& username,
         RestApiStatusCodeDescription(static_cast<RestApiStatusCode>(response->status_code)))};
   }
 
-  auto admin_token = glz::read_json<AdminToken>(response->body);
+  auto admin_token = ParseResponse<AdminToken>(*response);
 
   if (!admin_token) {
-    throw std::runtime_error{admin_token.error().custom_error_message.data()};
+    return std::unexpected{admin_token.error()};
   }
 
   struct MakeSharedEnabler : Api {
@@ -85,19 +104,7 @@ Api::GetInbounds() const {
         response.error().Description())};
   }
 
-  const auto inbounds = glz::read_json<Inbounds>(response->body);
-
-  if (inbounds) {
-    return *inbounds;
-  }
-
-  const auto error = Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing Inbounds object failed: {}"), glz::format_error(inbounds, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<Inbounds>(*response);
 }
 
 Api::Expected<User>
@@ -139,19 +146,7 @@ Api::AddUser(const User& user) const {
         response.error().Description())};
   }
 
-  const auto added_user = glz::read_json<User>(response->body);
-
-  if (added_user) {
-    return *added_user;
-  }
-
-  const auto error = Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(added_user, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<User>(*response);
 }
 
 Api::Expected<User>
@@ -171,19 +166,7 @@ Api::GetUser(const std::string& username) const {
         response.error().Description())};
   }
 
-  const auto user = glz::read_json<User>(response->body);
-
-  if (user) {
-    return *user;
-  }
-
-  const auto error = Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(user, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<User>(*response);
 }
 
 Api::Expected<User>
@@ -209,22 +192,10 @@ Api::ModifyUser(const std::string& username, const User& modified_user) const {
         response.error().Description())};
   }
 
-  const auto added_user = glz::read_json<User>(response->body);
-
-  if (added_user) {
-    return *added_user;
-  }
-
-  const auto error = Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(added_user, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<User>(*response);
 }
 
-Api::RestApiStatusCode
+HttpClient::Response
 Api::RemoveUser(const std::string& username) const {
   HttpHeaders headers;
   headers.Add("Authorization", token_type_ + " " + access_token_);
@@ -241,7 +212,7 @@ Api::RemoveUser(const std::string& username) const {
         response.error().Description())};
   }
 
-  return static_cast<Api::RestApiStatusCode>(response->status_code);
+  return *response;
 }
 
 Api::Expected<User>
@@ -261,19 +232,27 @@ Api::ResetUserDataUsage(const std::string& username) const {
         response.error().Description())};
   }
 
-  const auto user = glz::read_json<User>(response->body);
+  return ParseResponse<User>(*response);
+}
 
-  if (user) {
-    return *user;
+Api::Expected<User>
+Api::RevokeUserSubscription(const std::string& username) const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Post(uri_ + "/api/user/"s + username + "/revoke_sub", {}, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error for '{}': {}"),
+        __FUNCTION__,
+        username,
+        response.error().Description())};
   }
 
-  const auto error = Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(user, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<User>(*response);
 }
 
 Api::Expected<Users>
@@ -324,20 +303,167 @@ Api::GetUsers(GetUsersParams params) const {
         response.error().Description())};
   }
 
-  const auto users = glz::read_json<Users>(response->body);
+  return ParseResponse<Users>(*response);
+}
 
-  if (users) {
-    return *users;
+HttpClient::Response
+Api::ResetUsersDataUsage() const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Post(uri_ + "/api/users/reset"s, {}, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
   }
 
-  const auto error = Error{
+  return *response;
+}
+
+Api::Expected<UserUsage>
+Api::GetUserUsage(const std::string& username, const TimePoint& start, const TimePoint& end) const {
+  HttpHeaders headers;
+  headers.Add("Content-Type", "application/x-www-form-urlencoded");
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  auto query = "start=" + std::format("{:%Y-%m-%dT%H:%M:%S}", start);
+
+  if (end != TimePoint{}) {
+    query += "&end=" + std::format("{:%Y-%m-%dT%H:%M:%S}", end);
+  }
+
+  HttpClient http_client;
+  const auto response = http_client.Get(uri_ + "/api/user/"s + username + "/usage/?" + query, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<UserUsage>(*response);
+}
+
+Api::Expected<User>
+Api::SetOwner(const std::string& username, const std::string& admin_username) const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Put(uri_ + "/api/user/"s + username + "/set-owner/?admin_username=" + admin_username, {}, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<User>(*response);
+}
+
+
+Api::Expected<UserList>
+Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  std::string query;
+
+  if (params.before) {
+    query = "?expired_before=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.before);
+  }
+
+  if (params.after) {
+    if (!query.empty()) {
+      query += '&';
+    }
+
+    query = "expired_after=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.after);
+  }
+
+  HttpClient http_client;
+  const auto response = http_client.Get(uri_ + "/api/users/expired/"s + query, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  UserList user_list;
+  const auto error_context = glz::read_json(user_list.list, response->body);
+
+  if (!error_context) {
+    return user_list;
+  }
+
+  const auto error = Api::Error{
     .response_body = response->body,
     .response_headers = response->headers,
     .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(users, response->body))};
+    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(error_context, response->body))};
 
   return std::unexpected{error};
 }
+
+
+Api::Expected<UserList>
+Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  std::string query;
+
+  if (params.before) {
+    query = "?expired_before=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.before);
+  }
+
+  if (params.after) {
+    if (!query.empty()) {
+      query += '&';
+    }
+
+    query = "expired_after=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.after);
+  }
+
+  HttpClient http_client;
+  const auto response = http_client.Delete(uri_ + "/api/users/expired/"s + query, {}, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  UserList user_list;
+  const auto error_context = glz::read_json(user_list.list, response->body);
+
+  if (!error_context) {
+    return user_list;
+  }
+
+  const auto error = Api::Error{
+    .response_body = response->body,
+    .response_headers = response->headers,
+    .status_code = response->status_code,
+    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(error_context, response->body))};
+
+  return std::unexpected{error};
+}
+
 
 Api::Api(std::string uri, std::string token_type, std::string access_token)
     : uri_{std::move(uri)},
