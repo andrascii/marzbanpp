@@ -1,3 +1,4 @@
+#include <optional>
 #include "api.h"
 #include "logger.h"
 
@@ -60,15 +61,20 @@ int main() {
     }
 
     const auto& api = *expected_api;
-    const auto user_list = api->GetExpiredUsers();
-    LOG_INFO(ExplainResponse(user_list));
 
-    const auto resp = api->ResetUsersDataUsage();
+    Admin admin{
+      .username = "admin",
+      .password = "321",
+      .is_sudo = false,
+      .telegram_id = 7820591690,
+      .discord_webhook = std::nullopt,
+      .users_usage = std::nullopt
+    };
 
-    auto tp = GetStartTimeOfToday();
-    tp = tp - 86400s * 7;
-    const auto andrey_usage = api->GetUserUsage("Andrey",  std::chrono::time_point_cast<std::chrono::seconds>(tp));
-    LOG_INFO(ExplainResponse(andrey_usage));
+    admin.password = "andrey1995!";
+    admin.is_sudo = true;
+    const auto modified_admin_response = api->ModifyAdmin("admin", admin);
+    LOG_INFO(ExplainResponse(modified_admin_response));
 
     const auto user_list2 = api->DeleteExpiredUsers();
     LOG_INFO(ExplainResponse(user_list2));

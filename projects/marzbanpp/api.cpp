@@ -1,4 +1,5 @@
 #include "api.h"
+#include <stdexcept>
 
 #include "net/http_client.h"
 #include "net/http_headers.h"
@@ -47,12 +48,12 @@ struct AdminToken {
 
 Api::Expected<Api::Ptr>
 Api::AuthAndCreate(const std::string& uri, const std::string& username, const std::string& password) {
-  HttpClient http_client;
   HttpHeaders headers;
-
   headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
   const auto post_data = std::format("username={}&password={}", username, password);
+
+  HttpClient http_client;
   const auto response = http_client.Post(uri + "/api/admin/token", post_data, headers);
 
   if (!response) {
@@ -88,6 +89,152 @@ Api::AuthAndCreate(const std::string& uri, const std::string& username, const st
   return std::make_shared<MakeSharedEnabler>(uri, std::move(*admin_token));
 }
 
+Api::Expected<Admin>
+Api::GetCurrentAdmin() const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Get(uri_ + "/api/admin"s, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<Admin>(*response);
+}
+
+Api::Expected<Admin>
+Api::CreateAdmin(const Admin& admin) const {
+  HttpHeaders headers;
+  headers.Add("Content-Type", "application/json");
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  std::string create_admin_request;
+
+  if (glz::write_json(admin, create_admin_request)) {
+    throw std::runtime_error{fmt::format(fmt::runtime("error JSONify user to send request"))};
+  }
+
+  HttpClient http_client;
+  const auto response = http_client.Post(uri_ + "/api/admin"s, create_admin_request, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<Admin>(*response);
+}
+
+Api::Expected<Admin>
+Api::ModifyAdmin(const std::string& username, const Admin& admin) const {
+  HttpHeaders headers;
+  headers.Add("Content-Type", "application/json");
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  std::string modify_admin_request;
+
+  if (glz::write_json(admin, modify_admin_request)) {
+    throw std::runtime_error{fmt::format(fmt::runtime("error JSONify user to send request"))};
+  }
+
+  HttpClient http_client;
+  const auto response = http_client.Put(uri_ + "/api/admin/"s + username, modify_admin_request, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<Admin>(*response);
+}
+
+Api::Expected<Admin>
+Api::RemoveAdmin(const std::string& username) const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Delete(uri_ + "/api/admin/"s + username, {}, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<Admin>(*response);
+}
+
+Api::Expected<Admins>
+Api::GetAdmins(const GetAdminsParams& params) const {
+  HttpHeaders headers;
+  headers.Add("Content-Type", "application/x-www-form-urlencoded");
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  std::string query;
+  std::vector<std::string> data;
+
+  if (params.limit) {
+    data.push_back("limit=" + std::to_string(*params.limit));
+  }
+
+  if (params.offset) {
+    data.push_back("offset=" + std::to_string(*params.offset));
+  }
+
+  if (params.username && !params.username->empty()) {
+    for (const auto& username : *params.username) {
+      data.push_back("username=" + username);
+    }
+  }
+
+  for (const auto& query_element : data) {
+    query += query_element + "&";
+  }
+
+  query.pop_back();
+
+  HttpClient http_client;
+  const auto response = http_client.Get(uri_ + "/api/admins/?" + query, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  Admins admins;
+  const auto error_context = glz::read_json(admins.list, response->body);
+
+  if (!error_context) {
+    return admins;
+  }
+
+  const auto error = Api::Error{
+    .response_body = response->body,
+    .response_headers = response->headers,
+    .status_code = response->status_code,
+    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(error_context, response->body))};
+
+  return std::unexpected{error};
+}
+
 Api::Expected<Inbounds>
 Api::GetInbounds() const {
   HttpHeaders headers;
@@ -110,7 +257,7 @@ Api::GetInbounds() const {
 Api::Expected<User>
 Api::AddUser(const User& user) const {
   if (!user.username.has_value()) {
-    throw std::runtime_error{"user.username must be set but none"};
+    throw std::runtime_error{"'username' field must be set"};
   }
 
   const auto is_valid_status =
@@ -171,6 +318,10 @@ Api::GetUser(const std::string& username) const {
 
 Api::Expected<User>
 Api::ModifyUser(const std::string& username, const User& modified_user) const {
+  if (!modified_user.username) {
+    throw std::runtime_error{"'username' field must be set"};
+  }
+
   HttpHeaders headers;
   headers.Add("Content-Type", "application/json");
   headers.Add("Authorization", token_type_ + " " + access_token_);
@@ -370,7 +521,6 @@ Api::SetOwner(const std::string& username, const std::string& admin_username) co
   return ParseResponse<User>(*response);
 }
 
-
 Api::Expected<UserList>
 Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
   HttpHeaders headers;
@@ -417,7 +567,6 @@ Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
   return std::unexpected{error};
 }
 
-
 Api::Expected<UserList>
 Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
   HttpHeaders headers;
@@ -463,7 +612,6 @@ Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
 
   return std::unexpected{error};
 }
-
 
 Api::Api(std::string uri, std::string token_type, std::string access_token)
     : uri_{std::move(uri)},
