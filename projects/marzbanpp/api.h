@@ -9,6 +9,8 @@
 #include "types/user_usage.h"
 #include "types/users.h"
 #include "types/admins.h"
+#include "types/system.h"
+#include "types/hosts.h"
 
 namespace marzbanpp {
 
@@ -67,9 +69,12 @@ class Api {
   Expected<Admin> CreateAdmin(const Admin& admin) const;
   Expected<Admin> ModifyAdmin(const std::string& username, const Admin& admin) const;
   Expected<Admin> RemoveAdmin(const std::string& username) const;
-  Expected<Admins> GetAdmins(const GetAdminsParams& params) const;
+  Expected<Admins> GetAdmins(const GetAdminsParams& params = {}) const;
 
+  Expected<System> GetSystemStats() const;
   Expected<Inbounds> GetInbounds() const;
+  Expected<Hosts> GetHosts() const;
+  Expected<Hosts> ModifyHosts(const Hosts& hosts) const;
 
   Expected<User> AddUser(const User& user) const;
   Expected<User> GetUser(const std::string& username) const;
@@ -77,7 +82,7 @@ class Api {
   HttpClient::Response RemoveUser(const std::string& username) const;
   Expected<User> ResetUserDataUsage(const std::string& username) const;
   Expected<User> RevokeUserSubscription(const std::string& username) const;
-  Expected<Users> GetUsers(GetUsersParams params) const;
+  Expected<Users> GetUsers(GetUsersParams params = {}) const;
   HttpClient::Response ResetUsersDataUsage() const;
   Expected<UserUsage> GetUserUsage(const std::string& username, const TimePoint& start, const TimePoint& end = {}) const;
   Expected<User> SetOwner(const std::string& username, const std::string& admin_username) const;

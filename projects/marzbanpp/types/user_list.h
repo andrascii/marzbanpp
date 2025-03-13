@@ -2,8 +2,6 @@
 
 namespace marzbanpp {
 
-struct UserList {
-  std::vector<std::string> list;
-};
+using UserList = std::vector<std::string>;
 
 }// namespace marzbanpp

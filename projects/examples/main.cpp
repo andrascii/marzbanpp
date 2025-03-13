@@ -1,4 +1,3 @@
-#include <optional>
 #include "api.h"
 #include "logger.h"
 
@@ -11,7 +10,8 @@ std::string FormatResponse(const marzbanpp::Api::Error& error) {
     formatted += header;
   }
 
-  formatted += '\n' + error.response_body;
+  formatted += '\n' + error.response_body + "\n\n";
+  formatted += error.error;
   return formatted;
 }
 
@@ -29,17 +29,6 @@ std::string ExplainResponse(const marzbanpp::Api::Expected<T>& value) {
   }
 
   return FormatResponse(value.error());
-}
-
-std::chrono::time_point<std::chrono::system_clock> GetStartTimeOfToday() {
-  using system_clock = std::chrono::system_clock;
-  std::time_t t_now = std::chrono::system_clock::to_time_t(system_clock::now());// Получаем текущее время в виде std::time_t
-  std::tm tmp = *localtime(&t_now);                                             // Конвертируем в std::tm.
-  tmp.tm_hour = 0;                                                              // Обнуляем все поля времени.
-  tmp.tm_min = 0;
-  tmp.tm_sec = 0;
-  std::time_t t_start_time_of_day = std::mktime(&tmp);// Делаем обратные преобразования.
-  return system_clock::from_time_t(t_start_time_of_day);
 }
 
 int main() {
@@ -62,22 +51,8 @@ int main() {
 
     const auto& api = *expected_api;
 
-    Admin admin{
-      .username = "admin",
-      .password = "321",
-      .is_sudo = false,
-      .telegram_id = 7820591690,
-      .discord_webhook = std::nullopt,
-      .users_usage = std::nullopt
-    };
-
-    admin.password = "andrey1995!";
-    admin.is_sudo = true;
-    const auto modified_admin_response = api->ModifyAdmin("admin", admin);
-    LOG_INFO(ExplainResponse(modified_admin_response));
-
-    const auto user_list2 = api->DeleteExpiredUsers();
-    LOG_INFO(ExplainResponse(user_list2));
+    auto result = api->GetHosts();
+    LOG_INFO(ExplainResponse(result));
 
     return EXIT_SUCCESS;
   } catch (const std::exception& ex) {

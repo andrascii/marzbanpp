@@ -4,8 +4,6 @@
 
 namespace marzbanpp {
 
-struct Admins {
-  std::vector<Admin> list;
-};
+using Admins = std::vector<Admin>;
 
 }// namespace marzbanpp

@@ -1,4 +1,5 @@
 #include "api.h"
+#include <glaze/json/prettify.hpp>
 #include <stdexcept>
 
 #include "net/http_client.h"
@@ -219,20 +220,26 @@ Api::GetAdmins(const GetAdminsParams& params) const {
         response.error().Description())};
   }
 
-  Admins admins;
-  const auto error_context = glz::read_json(admins.list, response->body);
+  return ParseResponse<Admins>(*response);
+}
 
-  if (!error_context) {
-    return admins;
+Api::Expected<System>
+Api::GetSystemStats() const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Get(uri_ + "/api/system/"s, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
   }
 
-  const auto error = Api::Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(error_context, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<System>(*response);
 }
 
 Api::Expected<Inbounds>
@@ -252,6 +259,51 @@ Api::GetInbounds() const {
   }
 
   return ParseResponse<Inbounds>(*response);
+}
+
+Api::Expected<Hosts>
+Api::GetHosts() const {
+  HttpHeaders headers;
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  HttpClient http_client;
+  const auto response = http_client.Get(uri_ + "/api/hosts/"s, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<Hosts>(*response);
+}
+
+Api::Expected<Hosts>
+Api::ModifyHosts(const Hosts& hosts) const {
+  HttpHeaders headers;
+  headers.Add("Content-Type", "application/json");
+  headers.Add("Authorization", token_type_ + " " + access_token_);
+
+  std::string modify_hosts_request;
+
+  if (glz::write_json(hosts, modify_hosts_request)) {
+    throw std::runtime_error{fmt::format(fmt::runtime("error JSONify user to send request"))};
+  }
+
+  HttpClient http_client;
+  const auto response = http_client.Put(uri_ + "/api/hosts/"s, modify_hosts_request, headers);
+
+  if (!response) {
+    throw std::runtime_error{
+      fmt::format(
+        fmt::runtime("{}: network error: {}"),
+        __FUNCTION__,
+        response.error().Description())};
+  }
+
+  return ParseResponse<Hosts>(*response);
 }
 
 Api::Expected<User>
@@ -551,20 +603,7 @@ Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
         response.error().Description())};
   }
 
-  UserList user_list;
-  const auto error_context = glz::read_json(user_list.list, response->body);
-
-  if (!error_context) {
-    return user_list;
-  }
-
-  const auto error = Api::Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(error_context, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<UserList>(*response);
 }
 
 Api::Expected<UserList>
@@ -597,20 +636,7 @@ Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
         response.error().Description())};
   }
 
-  UserList user_list;
-  const auto error_context = glz::read_json(user_list.list, response->body);
-
-  if (!error_context) {
-    return user_list;
-  }
-
-  const auto error = Api::Error{
-    .response_body = response->body,
-    .response_headers = response->headers,
-    .status_code = response->status_code,
-    .error = fmt::format(fmt::runtime("parsing JSON failed: {}"), glz::format_error(error_context, response->body))};
-
-  return std::unexpected{error};
+  return ParseResponse<UserList>(*response);
 }
 
 Api::Api(std::string uri, std::string token_type, std::string access_token)
