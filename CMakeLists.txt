@@ -22,12 +22,18 @@ if (UNIX AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILE
   set(CMAKE_CXX_COMPILER "clang++")
 endif()
 
-project("marzbanpp" LANGUAGES C CXX)
+project(
+  "marzbanpp"
+  VERSION 1.0.0
+  LANGUAGES CXX
+)
 
 #
 # adding another one path to find .cmake files
 #
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+include(GNUInstallDirs)
 
 #
 # adding settings for cl/clang compiler (depends on which compiler actully used)
@@ -99,3 +105,7 @@ add_clang_format(
   TARGET_NAME reformat
   SOURCES_LIST ${REFORMAT_SOURCES}
 )
+
+if(NOT CMAKE_SKIP_INSTALL_RULES)
+  include(install_rules)
+endif()
