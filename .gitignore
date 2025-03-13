@@ -1,0 +1,8 @@
+.DS_Store
+.cache
+build
+build-debug
+build-release
+build-relwithdeb
+*.log
+compile_commands.json
