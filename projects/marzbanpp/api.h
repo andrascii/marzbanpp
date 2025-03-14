@@ -3,14 +3,14 @@
 #include <chrono>
 
 #include "net/http_client.h"
+#include "types/admins.h"
+#include "types/hosts.h"
 #include "types/inbounds.h"
+#include "types/system.h"
 #include "types/user.h"
 #include "types/user_list.h"
 #include "types/user_usage.h"
 #include "types/users.h"
-#include "types/admins.h"
-#include "types/system.h"
-#include "types/hosts.h"
 
 namespace marzbanpp {
 
@@ -86,25 +86,7 @@ class Api {
   HttpClient::Response ResetUsersDataUsage() const;
   Expected<UserUsage> GetUserUsage(const std::string& username, const TimePoint& start, const TimePoint& end = {}) const;
   Expected<User> SetOwner(const std::string& username, const std::string& admin_username) const;
-
-  //!
-  //! Can be passed:
-  //!   1. 'before' and 'after' together
-  //!   2. only one parameter 'before' or 'after'
-  //!   3. no one parameter
-  //!
-  //! In case when we pass nothing - returns a list of all expired users.
-  //!
   Expected<UserList> GetExpiredUsers(const ExpiredUsersParams& params = {}) const;
-
-  //!
-  //! Can be passed:
-  //!   1. 'before' and 'after' together
-  //!   2. only one parameter 'before' or 'after'
-  //!   3. no one parameter
-  //!
-  //! In case when we pass nothing - returns a list of all expired users.
-  //!
   Expected<UserList> DeleteExpiredUsers(const ExpiredUsersParams& params = {}) const;
 
  private:
