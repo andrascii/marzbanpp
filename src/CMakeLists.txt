@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-include(make_executable_sanitized_target)
+include(make_static_library_sanitized_target)
 
 set(THIS_TARGET_NAME marzbanpp)
 project(${THIS_TARGET_NAME})
@@ -8,12 +8,12 @@ project(${THIS_TARGET_NAME})
 #
 # precompiled header
 #
-set(PRECOMPILED_HEADER "${CMAKE_CURRENT_SOURCE_DIR}/stdafx.h")
+set(PRECOMPILED_HEADER "${CMAKE_SOURCE_DIR}/include/marzbanpp/stdafx.h")
 
 #
 # deps include directories
 #
-list(APPEND ADDITIONAL_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/projects/marzbanpp")
+list(APPEND ADDITIONAL_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include")
 
 #
 # deps
@@ -25,16 +25,10 @@ list(APPEND DEPS CURL::libcurl)
 #
 # collecting sources and headers
 #
-file(GLOB_RECURSE TYPES_SOURCES "*.cpp")
-file(GLOB_RECURSE TYPES_HEADERS "*.h")
-
-file(GLOB_RECURSE NET_SOURCES "*.cpp")
-file(GLOB_RECURSE NET_HEADERS "*.h")
-
-file(GLOB_RECURSE SOURCES_LIST "*.cpp")
-file(GLOB_RECURSE HEADERS_LIST "*.h")
-
-list(APPEND SOURCES_LIST ${TYPES_SOURCES} ${NET_SOURCES})
+file(GLOB_RECURSE TYPES_HEADERS "${CMAKE_SOURCE_DIR}/include/marzbanpp/types/*.h")
+file(GLOB_RECURSE NET_HEADERS "${CMAKE_SOURCE_DIR}/include/marzbanpp/net/*.h")
+file(GLOB_RECURSE HEADERS_LIST "${CMAKE_SOURCE_DIR}/include/marzbanpp/*.h")
+file(GLOB_RECURSE SOURCES_LIST "${CMAKE_SOURCE_DIR}/src/*.cpp")
 list(APPEND HEADERS_LIST ${TYPES_HEADERS} ${NET_HEADERS})
 
 #
@@ -64,3 +58,14 @@ target_precompile_headers(${THIS_TARGET_NAME} PRIVATE ${PRECOMPILED_HEADER})
 # linking this target with other targets
 #
 target_link_libraries(${THIS_TARGET_NAME} PUBLIC ${DEPS})
+
+#
+# creating target with sanitizers
+#
+make_static_library_sanitized_target(
+  TARGET_NAME marzbanpp
+  PRECOMPILED_HEADER ${PRECOMPILED_HEADER}
+  HEADERS ${HEADERS_LIST}
+  SOURCES ${SOURCES_LIST}
+  DEPS ${DEPS}
+)

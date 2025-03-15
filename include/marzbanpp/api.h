@@ -49,45 +49,35 @@ class Api {
     std::optional<TimePoint> after;
   };
 
-  struct Error {
-    std::string response_body;
-    std::vector<std::string> response_headers;
-    int status_code;
-    std::string error;
-  };
-
-  template <typename T>
-  using Expected = std::expected<T, Error>;
-
  public:
-  static Expected<Ptr> AuthAndCreate(
+  static Ptr AuthAndCreate(
     const std::string& uri,
     const std::string& username,
     const std::string& password);
 
-  Expected<Admin> GetCurrentAdmin() const;
-  Expected<Admin> CreateAdmin(const Admin& admin) const;
-  Expected<Admin> ModifyAdmin(const std::string& username, const Admin& admin) const;
-  Expected<Admin> RemoveAdmin(const std::string& username) const;
-  Expected<Admins> GetAdmins(const GetAdminsParams& params = {}) const;
+  Admin GetCurrentAdmin() const;
+  Admin CreateAdmin(const Admin& admin) const;
+  Admin ModifyAdmin(const std::string& username, const Admin& admin) const;
+  Admin RemoveAdmin(const std::string& username) const;
+  Admins GetAdmins(const GetAdminsParams& params = {}) const;
 
-  Expected<System> GetSystemStats() const;
-  Expected<Inbounds> GetInbounds() const;
-  Expected<Hosts> GetHosts() const;
-  Expected<Hosts> ModifyHosts(const Hosts& hosts) const;
+  System GetSystemStats() const;
+  Inbounds GetInbounds() const;
+  Hosts GetHosts() const;
+  Hosts ModifyHosts(const Hosts& hosts) const;
 
-  Expected<User> AddUser(const User& user) const;
-  Expected<User> GetUser(const std::string& username) const;
-  Expected<User> ModifyUser(const std::string& username, const User& modified_user) const;
+  User AddUser(const User& user) const;
+  User GetUser(const std::string& username) const;
+  User ModifyUser(const std::string& username, const User& modified_user) const;
   HttpClient::Response RemoveUser(const std::string& username) const;
-  Expected<User> ResetUserDataUsage(const std::string& username) const;
-  Expected<User> RevokeUserSubscription(const std::string& username) const;
-  Expected<Users> GetUsers(GetUsersParams params = {}) const;
+  User ResetUserDataUsage(const std::string& username) const;
+  User RevokeUserSubscription(const std::string& username) const;
+  Users GetUsers(GetUsersParams params = {}) const;
   HttpClient::Response ResetUsersDataUsage() const;
-  Expected<UserUsage> GetUserUsage(const std::string& username, const TimePoint& start, const TimePoint& end = {}) const;
-  Expected<User> SetOwner(const std::string& username, const std::string& admin_username) const;
-  Expected<UserList> GetExpiredUsers(const ExpiredUsersParams& params = {}) const;
-  Expected<UserList> DeleteExpiredUsers(const ExpiredUsersParams& params = {}) const;
+  UserUsage GetUserUsage(const std::string& username, const TimePoint& start, const TimePoint& end = {}) const;
+  User SetOwner(const std::string& username, const std::string& admin_username) const;
+  UserList GetExpiredUsers(const ExpiredUsersParams& params = {}) const;
+  UserList DeleteExpiredUsers(const ExpiredUsersParams& params = {}) const;
 
  private:
   Api(std::string uri, std::string token_type, std::string access_token);

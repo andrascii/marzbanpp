@@ -41,13 +41,11 @@ include(GNUInstallDirs)
 include(clang_options)
 include(msvc_set_target_options)
 
-#
-# function to register source files for reformatting by clang-format
-#
-include(add_clang_format)
-
 message(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 
+#
+# packages
+#
 find_package(GTest REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(date CONFIG REQUIRED)
@@ -66,45 +64,8 @@ if (CMAKE_VERSION VERSION_LESS "3.7.0")
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
-set(PROJECTS_DIR projects)
-file(GLOB CHILDREN ${PROJECTS_DIR}/*)
-
-foreach(CHILD ${CHILDREN})
-  if (IS_DIRECTORY ${CHILD} AND EXISTS ${CHILD}/CMakeLists.txt)
-    message(STATUS "${CHILD} is a directory and it contains CMakeLists.txt so it'll be added as a target")
-    get_filename_component(TARGET_NAME ${CHILD} NAME)
-    list(APPEND TARGETS ${TARGET_NAME})
-  endif()
-endforeach()
-
-if (NOT TARGETS)
-  message(FATAL "Not found targets")
-endif()
-
-foreach(TARGET ${TARGETS})
-  add_subdirectory(${PROJECTS_DIR}/${TARGET})
-
-  if (MSVC)
-    msvc_set_target_options(TARGET_NAME ${TARGET})
-  endif()
-
-endforeach()
-
-#
-# collecting sources to register them for reformat by clang-format utility
-#
-foreach(MY_TARGET ${TARGETS})
-  get_property(SOURCES TARGET ${MY_TARGET} PROPERTY SOURCES_PROPERTY)
-  list(APPEND REFORMAT_SOURCES ${SOURCES})
-endforeach()
-
-#
-# creating target 'reformat' to trigger calling clang-format utility for each source/header file in the project
-#
-add_clang_format(
-  TARGET_NAME reformat
-  SOURCES_LIST ${REFORMAT_SOURCES}
-)
+add_subdirectory(src)
+add_subdirectory(examples)
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(install_rules)

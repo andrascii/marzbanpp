@@ -8,7 +8,7 @@
       "type": "lldb-dap",
       "request": "launch",
       "name": "examples debug",
-      "program": "${workspaceRoot}/build/projects/examples",
+      "program": "${workspaceRoot}/build/examples/examples",
       "args": [],
       "env": [],
       "cwd": "${workspaceRoot}"
