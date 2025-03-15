@@ -8,7 +8,7 @@ include(GNUInstallDirs)
 set(package marzbanpp)
 
 install(
-    DIRECTORY projects/marzbanpp/
+    DIRECTORY include
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     COMPONENT marzbanpp_Development
 )
