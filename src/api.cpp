@@ -54,10 +54,6 @@ Api::AuthAndCreate(const std::string& uri, const std::string& username, const st
   HttpClient http_client;
   const auto response = http_client.Post(uri + "/api/admin/token", post_data, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   auto admin_token = ParseResponse<AdminToken>(response);
 
   struct MakeSharedEnabler : Api {
@@ -96,10 +92,6 @@ Admin Api::CreateAdmin(const Admin& admin) const {
   HttpClient http_client;
   const auto response = http_client.Post(uri_ + "/api/admin"s, create_admin_request, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<Admin>(response);
 }
 
@@ -128,10 +120,6 @@ Admin Api::RemoveAdmin(const std::string& username) const {
 
   HttpClient http_client;
   const auto response = http_client.Delete(uri_ + "/api/admin/"s + username, {}, headers);
-
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
 
   return ParseResponse<Admin>(response);
 }
@@ -168,10 +156,6 @@ Api::GetAdmins(const GetAdminsParams& params) const {
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/admins/?" + query, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<Admins>(response);
 }
 
@@ -182,10 +166,6 @@ Api::GetSystemStats() const {
 
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/system/"s, headers);
-
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
 
   return ParseResponse<System>(response);
 }
@@ -212,10 +192,6 @@ Hosts Api::GetHosts() const {
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/hosts/"s, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<Hosts>(response);
 }
 
@@ -233,10 +209,6 @@ Hosts Api::ModifyHosts(const Hosts& hosts) const {
 
   HttpClient http_client;
   const auto response = http_client.Put(uri_ + "/api/hosts/"s, modify_hosts_request, headers);
-
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
 
   return ParseResponse<Hosts>(response);
 }
@@ -275,10 +247,6 @@ User Api::AddUser(const User& user) const {
   HttpClient http_client;
   const auto response = http_client.Post(uri_ + "/api/user/"s, json_request, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<User>(response);
 }
 
@@ -316,10 +284,6 @@ User Api::ModifyUser(const std::string& username, const User& modified_user) con
   HttpClient http_client;
   const auto response = http_client.Put(uri_ + "/api/user/"s + username, json_request, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<User>(response);
 }
 
@@ -341,10 +305,6 @@ User Api::ResetUserDataUsage(const std::string& username) const {
   HttpClient http_client;
   const auto response = http_client.Post(uri_ + "/api/user/"s + username + "/reset", {}, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<User>(response);
 }
 
@@ -354,10 +314,6 @@ User Api::RevokeUserSubscription(const std::string& username) const {
 
   HttpClient http_client;
   const auto response = http_client.Post(uri_ + "/api/user/"s + username + "/revoke_sub", {}, headers);
-
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
 
   return ParseResponse<User>(response);
 }
@@ -401,10 +357,6 @@ Users Api::GetUsers(GetUsersParams params) const {
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/users/?" + query, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<Users>(response);
 }
 
@@ -438,10 +390,6 @@ Api::GetUserUsage(const std::string& username, const TimePoint& start, const Tim
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/user/"s + username + "/usage/?" + query, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<UserUsage>(response);
 }
 
@@ -451,10 +399,6 @@ User Api::SetOwner(const std::string& username, const std::string& admin_usernam
 
   HttpClient http_client;
   const auto response = http_client.Put(uri_ + "/api/user/"s + username + "/set-owner/?admin_username=" + admin_username, {}, headers);
-
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
 
   return ParseResponse<User>(response);
 }
@@ -481,10 +425,6 @@ Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/users/expired/"s + query, headers);
 
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
-
   return ParseResponse<UserList>(response);
 }
 
@@ -509,10 +449,6 @@ Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
 
   HttpClient http_client;
   const auto response = http_client.Delete(uri_ + "/api/users/expired/"s + query, {}, headers);
-
-  if (response.status_code != static_cast<int>(RestApiStatusCode::kOk)) {
-    throw MarzbanServerResponseError{response};
-  }
 
   return ParseResponse<UserList>(response);
 }
