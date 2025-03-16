@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdexcept>
+
 #include "marzbanpp/net/http_client.h"
 
 namespace marzbanpp {
@@ -18,10 +20,6 @@ class CurlError : public std::exception {
 
  private:
   CURLcode error_code_;
-};
-
-struct MarzbanPanelAuthorizationError : std::runtime_error {
-  using std::runtime_error::runtime_error;
 };
 
 class FromJsonToObjectError : public std::exception {
@@ -80,6 +78,32 @@ class UnexpectedStatusFieldValueInUser : public std::runtime_error {
 
     return result;
   }
+};
+
+class MarzbanServerResponseError : public std::runtime_error {
+ public:
+  MarzbanServerResponseError(const HttpClient::Response& response)
+      : std::runtime_error{FormatResponse(response)},
+        response_{response} {}
+
+  const HttpClient::Response& Response() const noexcept {
+    return response_;
+  }
+
+ private:
+  std::string FormatResponse(const marzbanpp::HttpClient::Response& response) {
+    auto formatted = std::to_string(response.status_code) + '\n';
+
+    for (const auto& header : response.headers) {
+      formatted += header;
+    }
+
+    formatted += '\n' + response.body + "\n\n";
+    return formatted;
+  }
+
+ private:
+  HttpClient::Response response_;
 };
 
 }// namespace marzbanpp
