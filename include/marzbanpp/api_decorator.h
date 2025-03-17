@@ -1,21 +1,12 @@
 #pragma once
 
 #include "marzbanpp/iapi.h"
-#include "marzbanpp/types/admin_token.h"
 
 namespace marzbanpp {
 
-class Api : public IApi {
+class ApiDecorator : public IApi {
  public:
-  static AdminToken GetAdminToken(
-    const std::string& uri,
-    const std::string& username,
-    const std::string& password);
-
-  static Ptr AuthAndCreate(
-    const std::string& uri,
-    const std::string& username,
-    const std::string& password);
+  ApiDecorator(std::string uri, std::string token_type, std::string access_token);
 
   void SetAdminToken(const AdminToken& token) override;
 
@@ -44,12 +35,10 @@ class Api : public IApi {
   UserList DeleteExpiredUsers(const ExpiredUsersParams& params = {}) const override;
 
  private:
-  Api(std::string uri, std::string token_type, std::string access_token);
-
- private:
   std::string uri_;
-  std::string token_type_;
-  std::string access_token_;
+  std::string username_;
+  std::string password_;
+  IApi::Ptr api_;
 };
 
 }// namespace marzbanpp

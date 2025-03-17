@@ -39,13 +39,10 @@ T ParseResponse(const HttpClient::Response& response) {
 
 namespace marzbanpp {
 
-struct AdminToken {
-  std::string access_token;
-  std::string token_type;
-};
-
-Api::Ptr
-Api::AuthAndCreate(const std::string& uri, const std::string& username, const std::string& password) {
+AdminToken Api::GetAdminToken(
+  const std::string& uri,
+  const std::string& username,
+  const std::string& password) {
   HttpHeaders headers;
   headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
@@ -55,6 +52,12 @@ Api::AuthAndCreate(const std::string& uri, const std::string& username, const st
   const auto response = http_client.Post(uri + "/api/admin/token", post_data, headers);
 
   auto admin_token = ParseResponse<AdminToken>(response);
+  return admin_token;
+}
+
+Api::Ptr
+Api::AuthAndCreate(const std::string& uri, const std::string& username, const std::string& password) {
+  auto admin_token = GetAdminToken(uri, username, password);
 
   struct MakeSharedEnabler : Api {
     MakeSharedEnabler(std::string uri, AdminToken token)
@@ -65,6 +68,12 @@ Api::AuthAndCreate(const std::string& uri, const std::string& username, const st
   };
 
   return std::make_shared<MakeSharedEnabler>(uri, std::move(admin_token));
+}
+
+void
+Api::SetAdminToken(const AdminToken& token) {
+  token_type_ = token.token_type;
+  access_token_ = token.access_token;
 }
 
 Admin Api::GetCurrentAdmin() const {
@@ -318,7 +327,7 @@ User Api::RevokeUserSubscription(const std::string& username) const {
   return ParseResponse<User>(response);
 }
 
-Users Api::GetUsers(GetUsersParams params) const {
+Users Api::GetUsers(const GetUsersParams& params) const {
   HttpHeaders headers;
   headers.Add("Content-Type", "application/x-www-form-urlencoded");
   headers.Add("Authorization", token_type_ + " " + access_token_);
@@ -457,7 +466,5 @@ Api::Api(std::string uri, std::string token_type, std::string access_token)
     : uri_{std::move(uri)},
       token_type_{std::move(token_type)},
       access_token_{std::move(access_token)} {}
-
-Api::~Api() = default;
 
 }// namespace marzbanpp
