@@ -11,7 +11,7 @@ option(USE_CLANG "Enables using clang as a compiler" ON)
 option(BUILD_TESTS "Enables building tests project" OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	set(BUILD_TESTS ON)
+  set(BUILD_TESTS ON)
 endif()
 
 #
@@ -56,7 +56,7 @@ find_package(CURL REQUIRED)
 #
 # C++ compiler settings
 #
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 

@@ -46,7 +46,7 @@ AdminToken Api::GetAdminToken(
   HttpHeaders headers;
   headers.Add("Content-Type", "application/x-www-form-urlencoded");
 
-  const auto post_data = std::format("username={}&password={}", username, password);
+  const auto post_data = fmt::format("username={}&password={}", username, password);
 
   HttpClient http_client;
   const auto response = http_client.Post(uri + "/api/admin/token", post_data, headers);
@@ -390,10 +390,10 @@ Api::GetUserUsage(const std::string& username, const TimePoint& start, const Tim
   headers.Add("Content-Type", "application/x-www-form-urlencoded");
   headers.Add("Authorization", token_type_ + " " + access_token_);
 
-  auto query = "start=" + std::format("{:%Y-%m-%dT%H:%M:%S}", start);
+  auto query = "start=" + fmt::format("{:%Y-%m-%dT%H:%M:%S}", start);
 
   if (end != TimePoint{}) {
-    query += "&end=" + std::format("{:%Y-%m-%dT%H:%M:%S}", end);
+    query += "&end=" + fmt::format("{:%Y-%m-%dT%H:%M:%S}", end);
   }
 
   HttpClient http_client;
@@ -420,7 +420,7 @@ Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
   std::string query;
 
   if (params.before) {
-    query = "?expired_before=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.before);
+    query = "?expired_before=" + fmt::format("{:%Y-%m-%dT%H:%M:%S}", *params.before);
   }
 
   if (params.after) {
@@ -428,7 +428,7 @@ Api::GetExpiredUsers(const ExpiredUsersParams& params) const {
       query += '&';
     }
 
-    query = "expired_after=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.after);
+    query = "expired_after=" + fmt::format("{:%Y-%m-%dT%H:%M:%S}", *params.after);
   }
 
   HttpClient http_client;
@@ -445,7 +445,7 @@ Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
   std::string query;
 
   if (params.before) {
-    query = "?expired_before=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.before);
+    query = "?expired_before=" + fmt::format("{:%Y-%m-%dT%H:%M:%S}", *params.before);
   }
 
   if (params.after) {
@@ -453,7 +453,7 @@ Api::DeleteExpiredUsers(const ExpiredUsersParams& params) const {
       query += '&';
     }
 
-    query = "expired_after=" + std::format("{:%Y-%m-%dT%H:%M:%S}", *params.after);
+    query = "expired_after=" + fmt::format("{:%Y-%m-%dT%H:%M:%S}", *params.after);
   }
 
   HttpClient http_client;
