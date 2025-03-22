@@ -7,19 +7,10 @@ if (NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
-option(USE_CLANG "Enables using clang as a compiler" ON)
 option(BUILD_TESTS "Enables building tests project" OFF)
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(BUILD_TESTS ON)
-endif()
-
-#
-# by default on UNIX systems we are using clang compiler
-#
-if (UNIX AND NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" AND USE_CLANG)
-  set(CMAKE_C_COMPILER "clang")
-  set(CMAKE_CXX_COMPILER "clang++")
 endif()
 
 project(
