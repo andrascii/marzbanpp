@@ -1,14 +1,13 @@
 function(make_sanitize_variant)
-
   set(options)
   set(oneValueArgs VARIANT TARGET_NAME)
   set(multiValueArgs FLAGS DEPS)
   cmake_parse_arguments(ARG "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
     list(APPEND SANITIZE_FLAGS ${ARG_FLAGS})
 
-    if (ARG_PRECOMPILED_HEADER)
+    if(ARG_PRECOMPILED_HEADER)
       target_precompile_headers(${ARG_TARGET_NAME} PRIVATE ${ARG_PRECOMPILED_HEADER})
     endif()
 
@@ -26,11 +25,9 @@ function(make_sanitize_variant)
     target_link_options(${ARG_TARGET_NAME}-${ARG_VARIANT} PRIVATE "$<$<CONFIG:RELEASE>:${SANITIZE_FLAGS}>")
     target_link_options(${ARG_TARGET_NAME}-${ARG_VARIANT} PRIVATE "$<$<CONFIG:DEBUG>:${SANITIZE_FLAGS}>")
   endif()
-
 endfunction()
 
 function(make_sanitized_target)
-
   set(options)
   set(oneValueArgs TARGET_NAME PRECOMPILED_HEADER)
   set(multiValueArgs SOURCES HEADERS DEPS)
@@ -56,5 +53,4 @@ function(make_sanitized_target)
     FLAGS -g -fno-omit-frame-pointer -fsanitize=undefined
     DEPS ${ARG_DEPS}
   )
-
 endfunction()

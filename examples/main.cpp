@@ -1,6 +1,5 @@
 #include "marzbanpp/api.h"
 #include "marzbanpp/types/exceptions.h"
-#include "logger.h"
 
 using namespace std::chrono_literals;
 
@@ -30,20 +29,13 @@ std::string ToJson(const T& value) {
 int main() {
   using namespace marzbanpp;
 
-  Logger()->set_level(spdlog::level::trace);
-
-  if (const auto error = EnableConsoleLogging(); error) {
-    std::cerr << error.message() << std::endl;
-    return EXIT_FAILURE;
-  }
-
   try {
     const auto api = Api::AuthAndCreate("http://localhost:8000", "mb", "123");
-    LOG_INFO(ToJson(api->GetHosts()));
+    std::cout << ToJson(api->GetHosts()) << std::endl;
 
     return EXIT_SUCCESS;
   } catch(const marzbanpp::FromJsonToObjectError& ex) {
-    LOG_ERROR(FormatResponse(ex.Response()) + ex.what());
+    printf("error: %s\n", (FormatResponse(ex.Response()) + ex.what()).data());
   } catch (const std::exception& ex) {
     printf("error: %s\n", ex.what());
     return EXIT_FAILURE;

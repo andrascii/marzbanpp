@@ -18,9 +18,9 @@ list(APPEND ADDITIONAL_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include")
 #
 # deps
 #
-list(APPEND DEPS date::date)
 list(APPEND DEPS glaze::glaze)
 list(APPEND DEPS CURL::libcurl)
+list(APPEND DEPS fmt::fmt)
 
 #
 # collecting sources and headers
@@ -62,10 +62,12 @@ target_link_libraries(${THIS_TARGET_NAME} PUBLIC ${DEPS})
 #
 # creating target with sanitizers
 #
-make_static_library_sanitized_target(
-  TARGET_NAME marzbanpp
-  PRECOMPILED_HEADER ${PRECOMPILED_HEADER}
-  HEADERS ${HEADERS_LIST}
-  SOURCES ${SOURCES_LIST}
-  DEPS ${DEPS}
-)
+if(DEVELOPER_MODE)
+  make_static_library_sanitized_target(
+    TARGET_NAME marzbanpp
+    PRECOMPILED_HEADER ${PRECOMPILED_HEADER}
+    HEADERS ${HEADERS_LIST}
+    SOURCES ${SOURCES_LIST}
+    DEPS ${DEPS}
+  )
+endif()

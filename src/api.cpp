@@ -22,7 +22,7 @@ using namespace marzbanpp;
 
 template <typename T>
 T ParseResponse(const HttpClient::Response& response) {
-  if (response.status_code != static_cast<int>(Api::RestApiStatusCode::kOk)) {
+  if (response.status_code != static_cast<int>(Api::RestApiStatusCode::kOk) || response.body.empty()) {
     throw MarzbanServerResponseError{response};
   }
 
@@ -160,7 +160,9 @@ Api::GetAdmins(const GetAdminsParams& params) const {
     query += query_element + "&";
   }
 
-  query.pop_back();
+  if (!query.empty()) {
+    query.pop_back();
+  }
 
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/admins/?" + query, headers);
@@ -361,7 +363,9 @@ Users Api::GetUsers(const GetUsersParams& params) const {
     query += query_element + "&";
   }
 
-  query.pop_back();
+  if (!query.empty()) {
+    query.pop_back();
+  }
 
   HttpClient http_client;
   const auto response = http_client.Get(uri_ + "/api/users/?" + query, headers);

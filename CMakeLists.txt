@@ -3,13 +3,14 @@ cmake_minimum_required(VERSION 3.16)
 #
 # by default generates project to build release package
 #
-if (NOT CMAKE_BUILD_TYPE)
+if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release)
 endif()
 
+option(DEVELOPER_MODE "Enables more strict compiler options and compiling example" OFF)
 option(BUILD_TESTS "Enables building tests project" OFF)
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   set(BUILD_TESTS ON)
 endif()
 
@@ -37,10 +38,7 @@ message(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 #
 # packages
 #
-find_package(GTest REQUIRED)
-find_package(spdlog REQUIRED)
-find_package(date CONFIG REQUIRED)
-find_package(cxxopts CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
 find_package(glaze REQUIRED)
 find_package(CURL REQUIRED)
 
@@ -51,12 +49,15 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-if (CMAKE_VERSION VERSION_LESS "3.7.0")
+if(CMAKE_VERSION VERSION_LESS "3.7.0")
   set(CMAKE_INCLUDE_CURRENT_DIR ON)
 endif()
 
 add_subdirectory(src)
-add_subdirectory(examples)
+
+if(DEVELOPER_MODE)
+  add_subdirectory(examples)
+endif()
 
 if(NOT CMAKE_SKIP_INSTALL_RULES)
   include(install_rules)

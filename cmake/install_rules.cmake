@@ -8,27 +8,27 @@ include(GNUInstallDirs)
 set(package marzbanpp)
 
 install(
-    DIRECTORY include/marzbanpp
-    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
-    COMPONENT marzbanpp_Development
+  DIRECTORY include/marzbanpp
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  COMPONENT marzbanpp_Development
 )
 
 install(
-    TARGETS marzbanpp
-    EXPORT marzbanppTargets
-    INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
+  TARGETS marzbanpp
+  EXPORT marzbanppTargets
+  INCLUDES DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
 write_basic_package_version_file(
-    "${package}ConfigVersion.cmake"
-    COMPATIBILITY SameMajorVersion
-    ARCH_INDEPENDENT
+  "${package}ConfigVersion.cmake"
+  COMPATIBILITY SameMajorVersion
+  ARCH_INDEPENDENT
 )
 
 # Allow package maintainers to freely override the path for the configs
 set(
-    marzbanpp_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/${package}"
-    CACHE PATH "CMake package config location relative to the install prefix"
+  marzbanpp_INSTALL_CMAKEDIR "${CMAKE_INSTALL_DATADIR}/${package}"
+  CACHE PATH "CMake package config location relative to the install prefix"
 )
 
 mark_as_advanced(marzbanpp_INSTALL_CMAKEDIR)
@@ -41,14 +41,14 @@ install(
 )
 
 install(
-    FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
-    DESTINATION "${marzbanpp_INSTALL_CMAKEDIR}"
-    COMPONENT marzbanpp_Development
+  FILES "${PROJECT_BINARY_DIR}/${package}ConfigVersion.cmake"
+  DESTINATION "${marzbanpp_INSTALL_CMAKEDIR}"
+  COMPONENT marzbanpp_Development
 )
 
 install(
-    EXPORT marzbanppTargets
-    NAMESPACE marzbanpp::
-    DESTINATION "${marzbanpp_INSTALL_CMAKEDIR}"
-    COMPONENT marzbanpp_Development
+  EXPORT marzbanppTargets
+  NAMESPACE marzbanpp::
+  DESTINATION "${marzbanpp_INSTALL_CMAKEDIR}"
+  COMPONENT marzbanpp_Development
 )

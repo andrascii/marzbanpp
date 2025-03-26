@@ -14,10 +14,6 @@
       "host" : true
     },
     "fmt",
-    "gtest",
-    "spdlog",
-    "date",
-    "cxxopts",
     "glaze",
     {
       "name": "curl",

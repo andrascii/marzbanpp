@@ -18,8 +18,6 @@ list(APPEND ADDITIONAL_INCLUDE_DIRECTORIES "${CMAKE_SOURCE_DIR}/include")
 #
 # deps
 #
-list(APPEND DEPS spdlog::spdlog)
-list(APPEND DEPS cxxopts::cxxopts)
 list(APPEND DEPS marzbanpp)
 
 #
