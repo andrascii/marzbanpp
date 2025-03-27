@@ -47,7 +47,7 @@ HttpClient::Get(
     throw CurlInitializeError{"curl_easy_init() failed"};
   }
 
-  Finally _{[easy] noexcept { curl_easy_cleanup(easy); }};
+  Finally _{[easy]() noexcept { curl_easy_cleanup(easy); }};
 
   Response response;
 
@@ -86,7 +86,7 @@ HttpClient::Put(
     throw CurlInitializeError{"curl_easy_init() failed"};
   }
 
-  Finally _{[easy] noexcept { curl_easy_cleanup(easy); }};
+  Finally _{[easy]() noexcept { curl_easy_cleanup(easy); }};
 
   Response response;
 
@@ -127,7 +127,7 @@ HttpClient::Post(
     throw CurlInitializeError{"curl_easy_init() failed"};
   }
 
-  Finally _{[easy] noexcept { curl_easy_cleanup(easy); }};
+  Finally _{[easy]() noexcept { curl_easy_cleanup(easy); }};
 
   Response response;
 
@@ -167,7 +167,7 @@ HttpClient::Delete(
     throw CurlInitializeError{"curl_easy_init() failed"};
   }
 
-  Finally _{[easy] noexcept { curl_easy_cleanup(easy); }};
+  Finally _{[easy]() noexcept { curl_easy_cleanup(easy); }};
 
   Response response;
 
