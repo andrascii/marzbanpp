@@ -38,9 +38,10 @@ message(STATUS "CMAKE_CXX_COMPILER_ID: ${CMAKE_CXX_COMPILER_ID}")
 #
 # packages
 #
-find_package(fmt CONFIG REQUIRED)
-find_package(glaze REQUIRED)
-find_package(CURL REQUIRED)
+include(CMakeFindDependencyMacro)
+find_dependency(fmt CONFIG REQUIRED)
+find_dependency(glaze REQUIRED)
+find_dependency(CURL REQUIRED)
 
 #
 # C++ compiler settings

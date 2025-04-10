@@ -1,1 +1,6 @@
+include(CMakeFindDependencyMacro)
+# finding dependencies for marzbanpp (to allow build marzbanpp with these packages)
+find_dependency(fmt CONFIG REQUIRED)
+find_dependency(glaze REQUIRED)
+find_dependency(CURL REQUIRED)
 include("${CMAKE_CURRENT_LIST_DIR}/marzbanppTargets.cmake")
