@@ -6,64 +6,56 @@
 
 namespace marzbanpp {
 
-struct CurlInitializeError : std::runtime_error {
+struct MarzbanppError : std::runtime_error {
   using std::runtime_error::runtime_error;
 };
 
-class CurlError : public std::exception {
- public:
-  explicit CurlError(CURLcode error_code) : error_code_{error_code} {}
-
-  const char* what() const noexcept override {
-    return curl_easy_strerror(error_code_);
-  }
-
- private:
-  CURLcode error_code_;
+struct CurlInitializeError : MarzbanppError {
+  using MarzbanppError::MarzbanppError;
 };
 
-class FromJsonToObjectError : public std::exception {
+class CurlError : public MarzbanppError {
+ public:
+  explicit CurlError(CURLcode error_code) : MarzbanppError{curl_easy_strerror(error_code)} {}
+};
+
+class FromJsonToObjectError : public MarzbanppError {
  public:
   FromJsonToObjectError(
     const glz::error_ctx& error_ctx,
     const HttpClient::Response& response)
-      : response_{response},
-        error_explanation_{glz::format_error(error_ctx, response_.body)} {}
+      : MarzbanppError{glz::format_error(error_ctx, response.body)},
+        response_{response} {}
 
   const HttpClient::Response& Response() const noexcept {
     return response_;
   }
 
-  const char* what() const noexcept override {
-    return error_explanation_.data();
-  }
-
  private:
   HttpClient::Response response_;
-  std::string error_explanation_;
 };
 
-class ToObjectFromJsonError : public std::runtime_error {
+class ToObjectFromJsonError : public MarzbanppError {
  public:
   explicit ToObjectFromJsonError(const glz::error_ctx& error_ctx)
-      : std::runtime_error{std::string{error_ctx.custom_error_message}} {}
+      : MarzbanppError{std::string{error_ctx.custom_error_message}} {}
 
  private:
   std::string error_explanation_;
 };
 
-struct UsernameFieldInUserWasNotSet : std::runtime_error {
-  using std::runtime_error::runtime_error;
+struct UsernameFieldInUserWasNotSet : MarzbanppError {
+  using MarzbanppError::MarzbanppError;
 };
 
-struct StatusFieldInUserWasNotSet : std::runtime_error {
-  using std::runtime_error::runtime_error;
+struct StatusFieldInUserWasNotSet : MarzbanppError {
+  using MarzbanppError::MarzbanppError;
 };
 
-class UnexpectedStatusFieldValueInUser : public std::runtime_error {
+class UnexpectedStatusFieldValueInUser : public MarzbanppError {
  public:
   UnexpectedStatusFieldValueInUser(const std::string& actual_value, const std::vector<std::string>& allowed_values)
-      : std::runtime_error{"unexpected value '" + actual_value + "', expected values are: " + VectorToString(allowed_values)} {}
+      : MarzbanppError{"unexpected value '" + actual_value + "', expected values are: " + VectorToString(allowed_values)} {}
 
  private:
   static std::string VectorToString(const std::vector<std::string>& allowed_values) {
@@ -80,10 +72,10 @@ class UnexpectedStatusFieldValueInUser : public std::runtime_error {
   }
 };
 
-class MarzbanServerResponseError : public std::runtime_error {
+class MarzbanServerResponseError : public MarzbanppError {
  public:
   MarzbanServerResponseError(const HttpClient::Response& response)
-      : std::runtime_error{FormatResponse(response)},
+      : MarzbanppError{FormatResponse(response)},
         response_{response} {}
 
   const HttpClient::Response& Response() const noexcept {
