@@ -10,6 +10,11 @@ namespace marzbanpp {
 
 class HttpClient final {
  public:
+  struct BasicAuth {
+    std::string username;
+    std::string password;
+  };
+
   struct Response {
     using Headers = std::vector<std::string>;
 
@@ -35,6 +40,7 @@ class HttpClient final {
     const std::string& uri,
     const std::string& payload,
     const HttpHeaders& headers = {},
+    const std::optional<BasicAuth>& auth = std::nullopt,
     bool follow_location = true) const;
 
   Response Delete(

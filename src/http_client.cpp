@@ -120,6 +120,7 @@ HttpClient::Post(
   const std::string& uri,
   const std::string& payload,
   const HttpHeaders& headers,
+  const std::optional<BasicAuth>& auth,
   bool follow_location) const {
   CURL* easy = curl_easy_init();
 
@@ -139,6 +140,12 @@ HttpClient::Post(
   curl_easy_setopt(easy, CURLOPT_WRITEDATA, &response);
   curl_easy_setopt(easy, CURLOPT_POSTFIELDS, payload.data());
   curl_easy_setopt(easy, CURLOPT_FOLLOWLOCATION, follow_location);
+
+  if (auth) {
+    const auto auth_string = auth->username + ":" + auth->password;
+    curl_easy_setopt(easy, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    curl_easy_setopt(easy, CURLOPT_USERPWD, auth_string.c_str());
+  }
 
   CURLcode result = curl_easy_perform(easy);
 
