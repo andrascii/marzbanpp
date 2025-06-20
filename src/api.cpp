@@ -360,7 +360,7 @@ Users Api::GetUsers(const GetUsersParams& params) const {
   }
 
   if (!data.empty()) {
-    query += "/?";
+    query += "?";
   }
 
   for (const auto& query_element : data) {
