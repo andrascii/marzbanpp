@@ -359,6 +359,10 @@ Users Api::GetUsers(const GetUsersParams& params) const {
     }
   }
 
+  if (!data.empty()) {
+    query += "/?";
+  }
+
   for (const auto& query_element : data) {
     query += query_element + "&";
   }
@@ -368,7 +372,7 @@ Users Api::GetUsers(const GetUsersParams& params) const {
   }
 
   HttpClient http_client;
-  const auto response = http_client.Get(uri_ + "/api/users/?" + query, headers);
+  const auto response = http_client.Get(uri_ + "/api/users" + query, headers);
 
   return ParseResponse<Users>(response);
 }
