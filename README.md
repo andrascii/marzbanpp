@@ -7,17 +7,19 @@ Feel free to fork and improve it if you want (i.e. you can make async version of
 Also you can develop tests.
 
 ## To install use vcpkg
-`vcpkg install marzbanpp`
+```bash
+vcpkg install marzbanpp
+```
 
 Add in the CMakeLists.txt:
-```
+```cmake
 include(CMakeFindDependencyMacro)
 find_dependency(marzbanpp REQUIRED)
 target_link_libraries(your-target-name PUBLIC marzbanpp::marzbanpp)
 ```
 
 ## Examples
-```
+```c++
 // C/C++
 #include <chrono>
 #include <iostream>
