@@ -9,6 +9,13 @@ Also you can develop tests.
 ## To install use vcpkg
 `vcpkg install marzbanpp`
 
+Add in the CMakeLists.txt:
+```
+include(CMakeFindDependencyMacro)
+find_dependency(marzbanpp REQUIRED)
+target_link_libraries(your-target-name PUBLIC marzbanpp::marzbanpp)
+```
+
 ## Examples
 ```
 // C/C++
