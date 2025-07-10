@@ -78,17 +78,17 @@ marzbanpp::User CreateUser(
 ) const {
   const auto inbounds = api->GetInbounds();
 
-  User::Inbounds user_inbounds;
+  marzbanpp::User::Inbounds user_inbounds;
   for (const auto& inbound : inbounds.vless) {
     user_inbounds.vless.push_back(inbound.tag);
   }
 
-  User::Proxies::Vless vless;
+  marzbanpp::User::Proxies::Vless vless;
   vless.flow = "xtls-rprx-vision";
-  User::Proxies proxies;
+  marzbanpp::User::Proxies proxies;
   proxies.vless = vless;
 
-  User user;
+  marzbanpp::User user;
   user.status = status_values::kActive;
   user.username = username;
   user.inbounds = user_inbounds;
