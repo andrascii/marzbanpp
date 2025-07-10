@@ -1,7 +1,10 @@
 # marzbanpp
 marzbanpp is the C++ library for interaction with Marzban through its REST API.
+
 This is a synchronous library I wrote to my own needs.
+
 Feel free to fork and improve it if you want (i.e. you can make async version of it).
+Also you can develop tests.
 
 ## To install use vcpkg
 `vcpkg install marzbanpp`
